@@ -19,21 +19,30 @@ fn main() -> Result<()> {
                 .required(true)
                 .index(1)
         )
+        .arg(
+            clap::Arg::with_name("raw")
+                .help("Output original (raw) source paths in binary (do not attempt to normalize paths)")
+                .short("r")
+                .long("raw")
+        )
         .get_matches();
 
     let input_file = matches.value_of("input").unwrap();
     let input_file = PathBuf::from(input_file);
     let input_file = std::fs::File::open(input_file)?;
+    let normalize = !matches.is_present("raw");
 
     let files = compiledfiles::parse(input_file)?;
     for file in files {
         let mut path = file.path;
         if let Ok(cwd) = std::env::current_dir() {
-            if path.is_absolute() && path.starts_with(&cwd) {
+            if normalize && path.is_absolute() && path.starts_with(&cwd) {
                 path = path.strip_prefix(&cwd).unwrap().to_path_buf();
             }
         }
-        path = normalize_path(&path);
+        if normalize  {
+            path = normalize_path(&path);
+        }
         println!("{}", path.display());
     }
     Ok(())
