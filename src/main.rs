@@ -25,12 +25,19 @@ fn main() -> Result<()> {
                 .short("r")
                 .long("raw")
         )
+        .arg(
+            clap::Arg::with_name("exists")
+                .help("Only output files which exist on disk")
+                .short("e")
+                .long("exists")
+        )
         .get_matches();
 
     let input_file = matches.value_of("input").unwrap();
     let input_file = PathBuf::from(input_file);
     let input_file = std::fs::File::open(input_file)?;
     let normalize = !matches.is_present("raw");
+    let exists = matches.is_present("exists");
 
     let files = compiledfiles::parse(input_file)?;
     for file in files {
@@ -43,7 +50,9 @@ fn main() -> Result<()> {
         if normalize  {
             path = normalize_path(&path);
         }
-        println!("{}", path.display());
+        if !exists || path.exists() {
+            println!("{}", path.display());
+        }
     }
     Ok(())
 }
