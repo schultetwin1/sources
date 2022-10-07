@@ -1,43 +1,35 @@
 use anyhow::Result;
 
 use std::path::{Component, Path, PathBuf};
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    /// File to scan for sources
+    input: PathBuf,
+
+    /// Turn debugging information on
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    verose: u8,
+
+    /// Output original (raw) source paths in the binary (do not attempt to normalize paths)
+    #[arg(short, long, action = clap::ArgAction::SetTrue)]
+    raw: bool,
+
+    /// Only output files which exist on disk
+    #[arg(short, long, action = clap::ArgAction::SetTrue)]
+    exists: bool,
+}
 
 fn main() -> Result<()> {
-    let matches = clap::App::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .about("Tool to list sources used to compile binary")
-        .arg(
-            clap::Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .multiple(true)
-                .help("Sets the level of verbosity")
-        )
-        .arg(
-            clap::Arg::with_name("input")
-                .help("File to scan for sources")
-                .required(true)
-                .index(1)
-        )
-        .arg(
-            clap::Arg::with_name("raw")
-                .help("Output original (raw) source paths in binary (do not attempt to normalize paths)")
-                .short("r")
-                .long("raw")
-        )
-        .arg(
-            clap::Arg::with_name("exists")
-                .help("Only output files which exist on disk")
-                .short("e")
-                .long("exists")
-        )
-        .get_matches();
+    let cli = Cli::parse();
 
-    let input_file = matches.value_of("input").unwrap();
+    let input_file = cli.input;
     let input_file = PathBuf::from(input_file);
     let input_file = std::fs::File::open(input_file)?;
-    let normalize = !matches.is_present("raw");
-    let exists = matches.is_present("exists");
+    let normalize = cli.raw;
+    let exists = cli.exists;
 
     let files = compiledfiles::parse(input_file)?;
     for file in files {
