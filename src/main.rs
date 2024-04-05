@@ -1,7 +1,7 @@
 use anyhow::Result;
 
-use std::path::{Component, Path, PathBuf};
 use clap::Parser;
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -39,7 +39,7 @@ fn main() -> Result<()> {
                 path = path.strip_prefix(&cwd).unwrap().to_path_buf();
             }
         }
-        if normalize  {
+        if normalize {
             path = normalize_path(&path);
         }
         if !exists || path.exists() {
