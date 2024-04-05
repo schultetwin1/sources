@@ -26,7 +26,6 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let input_file = cli.input;
-    let input_file = PathBuf::from(input_file);
     let input_file = std::fs::File::open(input_file)?;
     let normalize = cli.raw;
     let exists = cli.exists;
